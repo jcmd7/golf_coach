@@ -36,7 +36,7 @@ export function drawOverlay(canvas: HTMLCanvasElement, frame: PoseFrame | null, 
     ctx.beginPath();let started = false;
     for (const f of history) {
       if (f.time > (frame?.time ?? 0)) break;
-      const n = f.landmarks?.[0];if (!v(n)) { started=false;continue; }
+      const n = f.landmarks?.[0];if (!n || !v(n)) { started=false;continue; }
       if (!started) {ctx.moveTo(n.x*w,n.y*h);started=true;} else ctx.lineTo(n.x*w,n.y*h);
     }
     ctx.stroke();ctx.setLineDash([]);

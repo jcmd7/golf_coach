@@ -46,3 +46,33 @@ test("nearest-frame lookup is stable at boundaries", () => {
   assert.equal(nearestFrame(frames, -3)?.time, 0);
   assert.equal(nearestFrame(frames, 99)?.time, .4);
 });
+
+
+// Benchmark 1 tests capture usability, not actual golf coaching accuracy.
+import { evaluateBenchmark, benchmarkReport, hasCorePose } from "../lib/benchmark.ts";
+
+test("benchmark quality gate passes an ordered, well tracked synthetic capture", () => {
+  const frames = makeFrames();
+  const clip = { id: "fixture", name: "synthetic.mp4", url: "blob:test", duration: 4.4, analyzedDuration: 4.4, width: 1080, height: 1920, frames, phases: estimatePhases(frames) };
+  const result = evaluateBenchmark(clip);
+  assert.equal(result.passed, true, JSON.stringify(result.checks));
+  assert.equal(benchmarkReport(clip).result.passed, true);
+});
+
+test("benchmark gate rejects missing key joints even if pose arrays exist", () => {
+  const frames = makeFrames();
+  for (const frame of frames) frame.landmarks[27].visibility = 0.1;
+  const result = evaluateBenchmark({ frames, phases: estimatePhases(frames), width: 1080, height: 1920, analyzedDuration: 4.4 });
+  assert.equal(hasCorePose(frames[0].landmarks), false);
+  assert.equal(result.passed, false);
+  assert.ok(result.checks.some(check => check.id === "landmarks" && !check.passed));
+  assert.ok(result.checks.some(check => check.id === "metrics" && !check.passed));
+});
+
+test("benchmark gate detects out-of-order checkpoint edits", () => {
+  const frames = makeFrames();
+  const phases = estimatePhases(frames);
+  const result = evaluateBenchmark({ frames, phases: { ...phases, impact: phases.top - .1 }, width: 1080, height: 1920, analyzedDuration: 4.4 });
+  assert.equal(result.passed, false);
+  assert.ok(result.checks.some(check => check.id === "phases" && !check.passed));
+});

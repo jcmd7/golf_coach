@@ -77,7 +77,7 @@ function at(frames: PoseFrame[], time: number): Landmark[] | null {
 export function measureSwing(frames: PoseFrame[], phases: PhaseTimes): Metrics {
   const base = at(frames, phases.address);
   const top = at(frames, phases.top);
-  const samples = frames.map(f => f.landmarks).filter((p): p is Landmark[] => !!p);
+  const samples = frames.map(f => f.landmarks).filter((p): p is Landmark[] => !!p && [L.LS, L.RS, L.LH, L.RH, L.LK, L.RK, L.LA, L.RA].every(i => visible(p[i])));
   const quality = frames.length ? samples.length / frames.length * 100 : 0;
   const width = base && visible(base[L.LS]) && visible(base[L.RS]) ? dist(base[L.LS], base[L.RS]) : null;
   const validWidth = width && width > 0.045 ? width : null;
@@ -113,7 +113,7 @@ export function measureSwing(frames: PoseFrame[], phases: PhaseTimes): Metrics {
     spineChange: { value: changes.length ? Math.max(...changes) : null, label: "Torso tilt change", unit: "°", note: "Maximum change in projected torso angle relative to address" },
     shoulderTilt: { value: shoulderTilt, label: "Shoulder line at top", unit: "°", note: "Image-plane shoulder line angle, not 3D shoulder rotation" },
     kneeFlex: { value: kneeValues.length ? kneeValues.reduce((a,b)=>a+b,0)/kneeValues.length : null, label: "Knee flex at address", unit: "°", note: "Average projected knee flex; camera angle affects reading" },
-    tracking: { value: quality, label: "Pose coverage", unit: "%", note: "Fraction of analyzed video samples with detected body landmarks" },
+    tracking: { value: quality, label: "Pose coverage", unit: "%", note: "Fraction of samples with shoulders, hips, knees and ankles tracked" },
   };
 }
 

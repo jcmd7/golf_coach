@@ -38,6 +38,20 @@ The button **Explain with AI** calls `/api/coach` with **numeric, 2D pose-derive
 - Compare two analyzed swing clips side by side and jump to corresponding checkpoints
 - Runs in the browser without video upload, cloud storage, or server-side frame processing
 
+## Benchmark 1 — capture-quality acceptance gate
+
+After loading a **real face-on golf swing** video, the app shows a *Benchmark 01* panel with five checks:
+
+1. Video decoded with nonzero resolution and duration.
+2. At least 12 monotonic frame samples.
+3. Shoulders, hips, knees, and ankles detected on **≥70%** of samples.
+4. Address, top, impact **candidate**, and finish markers are in timeline order (manual corrections supported).
+5. Head, hip, and torso 2D metrics are numerically available.
+
+Use **Export benchmark report (JSON)** to save a reproducible capture-quality report (summary data only; no video or frames). Passing means *usable 2D capture*, **not** validated coaching, club detection, shot outcome, or calibrated 3D angles. For a genuine end-to-end acceptance, upload a 5–10 second permission-cleared golf clip in desktop and mobile browsers, inspect overlay positions through playback, manually check checkpoints, and export the report. Compare a second clip separately. Synthetic unit tests alone **cannot** certify the real-video benchmark.
+
+CI runs `npm test`, `npm run typecheck`, and `npm run build` after installing dependencies. Client-side analysis requires network on first use to download MediaPipe WASM and pose model assets.
+
 ## Important limitations (do not remove in a commercial build)
 
 - **2D video is not calibrated 3D biomechanics.** Values depend on camera angle, lens, occlusion, posture, and pixel geometry; movement is expressed relative to **address shoulder width** (not inches).
